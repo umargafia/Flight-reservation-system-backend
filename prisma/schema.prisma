@@ -1,0 +1,69 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model admin {
+  id        Int     @id @default(autoincrement())
+  username  String? @unique(map: "username_UNIQUE") @db.VarChar(45)
+  password  String? @db.VarChar(45)
+  full_name String? @db.VarChar(45)
+}
+
+model book_flight {
+  id          Int       @id @default(autoincrement())
+  flight_id   Int?
+  customer_id Int?
+  payment_id  Int?
+  customer    customer? @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_id_key")
+  flight      flight?   @relation(fields: [flight_id], references: [flight_id], onDelete: NoAction, onUpdate: NoAction, map: "flight_id_key")
+  payment     payment?  @relation(fields: [payment_id], references: [payment_id], onDelete: NoAction, onUpdate: NoAction, map: "payment_id_key")
+
+  @@index([customer_id], map: "customer_id_idx")
+  @@index([flight_id], map: "flight_id_idx")
+  @@index([payment_id], map: "payment_id_idx")
+}
+
+model customer {
+  customer_id  Int           @id @default(autoincrement())
+  surname      String        @db.VarChar(50)
+  firstname    String        @db.VarChar(50)
+  othername    String?       @db.VarChar(50)
+  email        String?       @db.VarChar(50)
+  phone_number String?       @db.VarChar(50)
+  address      String?       @db.VarChar(150)
+  no_children  Int?
+  no_adults    Int?
+  book_flight  book_flight[]
+  payment      payment[]
+}
+
+model flight {
+  flight_id   Int           @id @unique(map: "id_UNIQUE") @default(autoincrement())
+  flight_name String?       @db.VarChar(45)
+  start       String?       @db.VarChar(45)
+  stop        String?       @db.VarChar(45)
+  hours       Int?
+  date        String?       @db.VarChar(50)
+  time        String?       @db.VarChar(45)
+  price       Int?
+  book_flight book_flight[]
+}
+
+model payment {
+  payment_id  Int           @id @unique(map: "payment_id_UNIQUE") @default(autoincrement())
+  customer_id Int?
+  card_name   String        @db.VarChar(50)
+  card_number String        @db.VarChar(50)
+  expire_date String?       @db.VarChar(50)
+  cvv         String?       @db.VarChar(50)
+  ispaid      Int?          @db.TinyInt
+  customer    customer?     @relation(fields: [customer_id], references: [customer_id], onDelete: NoAction, onUpdate: NoAction, map: "customer_id")
+  book_flight book_flight[]
+
+  @@index([customer_id], map: "customer_id_idx")
+}
